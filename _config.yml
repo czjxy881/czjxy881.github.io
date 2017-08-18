@@ -79,8 +79,8 @@ analytics:
 author:
   name             : "Lambda Jia"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "博观约取"
-  location         : "HangZhou,China"
+  bio              : "博观约取,厚积薄发"
+  location         : "杭州,China"
   email            : "czjxy8898@gmail.com"
   uri              :
   bitbucket        :
@@ -95,7 +95,7 @@ author:
   keybase          :
   instagram        :
   lastfm           :
-  linkedin         :
+  linkedin         : http://www.linkedin.com/in/lambdaj/
   pinterest        :
   soundcloud       :
   stackoverflow    : # "123456/username" (the last part of your profile url, e.g. http://stackoverflow.com/users/123456/username)
