@@ -3,7 +3,7 @@ layout: single
 title: "Node顺序执行Shell命令"
 date: 2017-02-19 21:59:49 +0800
 comments: true
-categories: Node
+categories: 前端
 ---
 + 今天写个小工具，其中有一步是用node执行shell，第一次写，以为也是同步执行于是就直接一个 for-exec
 

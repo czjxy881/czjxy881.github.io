@@ -3,7 +3,7 @@ layout: single
 title: "聪明的shingling"
 date: 2017-02-15 00:06:11 +0800
 comments: true
-categories: 搜索引擎 信息检索
+categories: 信息检索
 ---
 + 今天看书，看到了一个计算文档相似度的公式，一开始完全没看懂，后来看懂后发现这么机智，给大家分享下
 $$
@@ -57,4 +57,4 @@ $$
 + [W-shingling 的 Wiki](https://en.wikipedia.org/wiki/W-shingling)
 + [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index)
 + Chrisopher D.Manning,王斌译,信息检索导论[M],人民邮电出版社,2010,300-303
-
+{% include toc %}

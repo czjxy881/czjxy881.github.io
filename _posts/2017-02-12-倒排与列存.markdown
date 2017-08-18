@@ -3,7 +3,7 @@ layout: single
 title: "倒排与列存"
 date: 2017-02-12 22:28:05 +0800
 comments: true
-categories: 搜索引擎
+categories: 信息检索
 ---
 + 一直傻傻分不清倒排和列存，今天有空梳理一下，主要有四个概念要明确:
   1. 索引方式: 正向索引，反向索引(倒排)
@@ -74,3 +74,5 @@ categories: 搜索引擎
 3. [传统的(Oracle)行存储和（HBase）列存储的区别](http://blog.csdn.net/lin434406218/article/details/52354911)
 4. [二级索引和倒排的区别](http://stackoverflow.com/questions/19248458/what-is-the-difference-between-a-secondary-index-and-an-inverted-index-in-cassan)
 5. [列式存储 HBase 系统架构学习](http://blog.jobbole.com/101011/)
+
+{% include toc %}

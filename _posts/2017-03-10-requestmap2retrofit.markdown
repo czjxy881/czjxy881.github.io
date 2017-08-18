@@ -3,7 +3,7 @@ layout: single
 title: "RequestMap2Retrofit"
 date: 2017-03-10 09:47:21 +0800
 comments: true
-categories: 
+categories: 工具
 ---
 + 最近写项目，各种Rest的接口调来调去，RequestMap总要反复写，服务发布方写一遍，调用方再写一遍，非常麻烦。
 + 业界目前有JAX-RS，resteasy通过发布facade包来避免这个问题。但是无力推进所有服务方修改，所以写了个小脚本用来将RequestMap转换成Retrofit2的接口。

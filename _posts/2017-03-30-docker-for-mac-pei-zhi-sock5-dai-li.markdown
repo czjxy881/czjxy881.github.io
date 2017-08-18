@@ -3,7 +3,7 @@ layout: single
 title: "Docker for Mac配置Sock5代理"
 date: 2017-03-30 17:39:08 +0800
 comments: true
-categories: docker 科学上网
+categories: 工具
 ---
 
 + 今天需要用ES的镜像，发现Docker Hub的镜像已经废弃了，换成了`docker.elastic.co`镜像。
@@ -38,3 +38,5 @@ listen-address  10.15.232.101:8118
 ### 参考资料
 + [Beginner having trouble with docker behind company proxy](https://forums.docker.com/t/beginner-having-trouble-with-docker-behind-company-proxy/3968/3)
 + [用Privoxy转发socks代理，建http代理](http://www.cnblogs.com/another-wheel/archive/2011/11/16/setup-http-proxy-via-socks-and-privoxy.html)
+
+{% include toc %}

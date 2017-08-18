@@ -3,7 +3,7 @@ layout: single
 title: "React根据宽度自适应高度"
 date: 2017-03-03 22:05:50 +0800
 comments: true
-categories: React 前端
+categories: 前端
 ---
 + 有时对于响应式布局，我们需要根据组件的宽度自适应高度。CSS无法实现这种动态变化，传统是用jQuery实现。
 + 而在React中无需依赖于JQuery,实现相对比较简单，只要在DidMount后更改width即可
@@ -48,7 +48,7 @@ class Card extends React.Component {
 
   render() {
     return (
-      <div className="test" style={{ width: this.state.width, height: this.state.height }}>
+      <div className="test" style={ { width: this.state.width, height: this.state.height } }>
         {`${this.state.width} x ${this.state.height}`}
       </div>
     );

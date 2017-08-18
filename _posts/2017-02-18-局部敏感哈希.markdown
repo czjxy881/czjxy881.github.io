@@ -71,3 +71,5 @@ categories: 信息检索
 4. [LSM实践与理论的差距](https://webdocs.cs.ualberta.ca/~drafiei/papers/lsh-cikm13.pdf)
 5. [Locality-Sensitive Hashing for Finding Nearest Neighbors 不错的介绍性文章]( http://www.slaney.org/malcolm/yahoo/Slaney2008-LSHTutorial.pdf)
 6. [还不错的MinHash介绍](http://www.cnblogs.com/fengfenggirl/p/lsh.html)
+
+{% include toc %}

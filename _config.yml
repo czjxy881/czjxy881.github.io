@@ -5,8 +5,10 @@
 # For technical reasons, this file is *NOT* reloaded automatically when you use
 # `jekyll serve`. If you change this file, please restart the server process.
 
+theme: minimal-mistakes-jekyll
+
 # Site Settings
-locale                   : "en"
+locale                   : "zh-CN"
 title                    : "Lambda说"
 title_separator          : "-"
 name                     : "Lambda说"
@@ -15,7 +17,7 @@ url                      : # the base hostname & protocol for your site e.g. "ht
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
-# breadcrumbs            : false # true, false (default)
+breadcrumbs              : true # false (default)
 words_per_minute         : 200
 comments:
   provider               : disqus # false (default), "disqus", "discourse", "facebook", "google-plus", "staticman", "custom"
@@ -80,7 +82,7 @@ analytics:
 author:
   name             : "Lambda Jia"
   avatar           : "/assets/images/bio.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "博观约取,厚积薄发"
+  bio              : "不积跬步，无以至千里"
   location         : "杭州,China"
   email            : "czjxy8898@gmail.com"
   uri              :
@@ -180,7 +182,7 @@ timezone: # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 
 # Plugins
-gems:
+plugins:
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-gist
@@ -243,6 +245,7 @@ defaults:
       layout: single
       author_profile: true
       read_time: true
-      comments: # true
+      comments: true
       share: true
       related: true
+      breadcrumbs: true

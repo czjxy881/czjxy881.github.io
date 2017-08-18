@@ -3,7 +3,7 @@ layout: single
 title: "记一次UTF-8引发的宕机"
 date: 2017-03-06 23:23:06 +0800
 comments: true
-categories: JAVA Jetty
+categories: 运维小记
 ---
 
 + 原本以为今天是个风平浪静的周一，没想到下午一个报警打破了全部的宁静
@@ -44,4 +44,4 @@ IOUtils.toString(input, "UTF-8");
 + 今天想用spring boot 1.5.2重现一次bug，但发现没法重现，试了狂压，多个异步线程池同时IOUtils，但是效果都不好，都没有造成connect reset，可能UTF8的锁也只是个表象，更有深层原因，也有可能是底层升级已经修复了。等后面再碰到再仔细研究下吧
 
 
-
+{% include toc %}
