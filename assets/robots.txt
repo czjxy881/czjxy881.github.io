@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://czjxy881.coding.me/sitemap.xml 

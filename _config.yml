@@ -6,7 +6,7 @@
 # `jekyll serve`. If you change this file, please restart the server process.
 
 # Site Settings
-locale                   : "cn"
+locale                   : "en"
 title                    : "Lambda说"
 title_separator          : "-"
 name                     : "Lambda说"
@@ -48,10 +48,11 @@ atom_feed:
   path                   : # blank (default) uses feed.xml
 
 # SEO Related
-google_site_verification :
+google_site_verification : WqsXkGtV4j5RnlXbiJSKoA84cvvP-NqvM3iuaCPN3LE
 bing_site_verification   :
 alexa_site_verification  :
 yandex_site_verification :
+baidu-site-verification  : a3JHrBojYb
 
 # Social Sharing
 twitter:
@@ -70,7 +71,7 @@ social:
 
 # Analytics
 analytics:
-  provider               : false # false (default), "google", "google-universal", "custom"
+  provider               : custom # false (default), "google", "google-universal", "custom"
   google:
     tracking_id          :
 
@@ -78,7 +79,7 @@ analytics:
 # Site Author
 author:
   name             : "Lambda Jia"
-  avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
+  avatar           : "/assets/images/bio.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "博观约取,厚积薄发"
   location         : "杭州,China"
   email            : "czjxy8898@gmail.com"
@@ -95,7 +96,7 @@ author:
   keybase          :
   instagram        :
   lastfm           :
-  linkedin         : http://www.linkedin.com/in/lambdaj/
+  linkedin         : lambdaj
   pinterest        :
   soundcloud       :
   stackoverflow    : # "123456/username" (the last part of your profile url, e.g. http://stackoverflow.com/users/123456/username)
