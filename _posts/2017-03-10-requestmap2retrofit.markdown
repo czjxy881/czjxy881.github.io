@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "RequestMap2Retrofit"
 date: 2017-03-10 09:47:21 +0800
 comments: true

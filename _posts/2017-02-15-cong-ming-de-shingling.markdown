@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "聪明的shingling"
 date: 2017-02-15 00:06:11 +0800
 comments: true

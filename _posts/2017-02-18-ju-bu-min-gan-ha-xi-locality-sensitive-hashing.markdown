@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "局部敏感哈希(Locality Sensitive Hashing)"
 date: 2017-02-18 20:27:25 +0800
 comments: true

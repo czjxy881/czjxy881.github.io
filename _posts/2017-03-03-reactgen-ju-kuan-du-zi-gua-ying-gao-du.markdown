@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "React根据宽度自适应高度"
 date: 2017-03-03 22:05:50 +0800
 comments: true

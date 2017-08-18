@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "倒排与列存"
 date: 2017-02-12 22:28:05 +0800
 comments: true

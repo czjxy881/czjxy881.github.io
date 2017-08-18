@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "记一次UTF-8引发的宕机"
 date: 2017-03-06 23:23:06 +0800
 comments: true

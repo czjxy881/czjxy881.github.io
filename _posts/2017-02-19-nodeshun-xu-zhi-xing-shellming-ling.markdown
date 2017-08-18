@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "Node顺序执行Shell命令"
 date: 2017-02-19 21:59:49 +0800
 comments: true

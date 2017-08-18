@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title: "Docker for Mac配置Sock5代理"
 date: 2017-03-30 17:39:08 +0800
 comments: true
