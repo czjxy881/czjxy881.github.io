@@ -9,7 +9,7 @@
 locale                   : "cn"
 title                    : "Lambda说"
 title_separator          : "-"
-name                     : "Lambda 说"
+name                     : "Lambda说"
 description              : "随便看看，随便写写"
 url                      : # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
