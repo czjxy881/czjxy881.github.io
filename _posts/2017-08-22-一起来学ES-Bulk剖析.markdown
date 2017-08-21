@@ -1,0 +1,38 @@
+---
+layout: single
+title: "一起来学ES —— Bulk剖析"
+date: 2017-08-21 00:10:08 +0800
+comments: true
+categories: ElasticSearch
+tags: es 源码剖析
+---
+### 背景
++ Bulk请求是ES常用的一种multi-document请求,其处理比较复杂，之前一直搞不清请求的处理逻辑，今天就从源码入手，仔细剖析一下其执行逻辑。
+<!--more-->
+
+### 时序分析
++ 简单而言，Bulk的时序如下图所示，Http节点只将包转为TCP,ingest节点进行些预设的前置处理，然后按shard拆分，再把按shard拆开的bulk再发到真实的data节点上，最后由data节点进行主副本同步写入。
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/oLWKUDIrBMoyulOoabpD.png)
+
+### 具体流程
+1. `RestControllor` 接收请求，dispatch到对应的handler上
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/nwlqvwdvJXsgubVcckRz.png)
+2. `BaseRestHandler` 调用 `RestBulkAction` 进行前置处理，请求转为 `BulkRequest`
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/VucbgALRsZUVfMowZgUu.png)
+3. `NodeClient`根据 `ActionModule` 注册的映射关系，找到`TransportBulkAction`作为tcp的处理逻辑
+4. `TransportBulkAction` 检查自己是不是 `ingest node`，如果不是就转发
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/kKMDCzLmKbknSMTpgVmb.png)
+5. `Ingest Node`接收到请求,执行pipeline
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/ZDSCdIXekVUjcaCVBjls.png)
+6. `TransportBulkAction`调用`BulkOperation`将`BulkRequest`拆为`BulkShardRequest`,转发到DataNode
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/DZRXNJXeWfOyQUToFSdc.png)
+7. `Primary Data Node`收到请求,转为`ReplicationOperation`操作，调用`TransportShardBulkAction`进行主副本的依次执行
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/VIZshGYqMqDOtCpRpxTF.png)
+8. `TransportShardBulkAction`的具体执行过程为`shardOperationOnPrimary`和`shardOperationOnReplica`,执行时直接调用了Engine进行执行。具体代码就不贴了，比较长
+
+### 线程池分析
++ 在日常中，我们经常遇到由于线程池占满的`es_rejected_execution_exception`
++ 通过源码可以看到，bulk的线程池为`ThreadPool.Names.BULK`,全局查找后发现只有`TransportShardBulkAction`和`PipelineExecutionService`有用。
++ Rest和TransportBulk居然没有用Bulk线程池，很是惊讶。不知道是不是没找到。。。
+
+{% include toc %}

@@ -17,6 +17,8 @@ tags: lua nginx
 ---
 + 本文介绍的API网关设计很简单，主要有路由，过滤器，拦截器三个部分组成。
 + 可以实现权限验证，日志记录，参数改写，限流限速等功能。
+
+
 ![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/icBvPNHTAoWwWvGKBeGF.png)
 
 
