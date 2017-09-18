@@ -1,0 +1,87 @@
+---
+layout: single
+title: "Kibana多租户方案"
+date: 2017-09-18 19:10:08 +0800
+comments: true
+categories: ElasticSearch
+tags: es 源码剖析
+---
+## 概览
++ Kibana是一个Elastic公司提供的，用于ElasticSearch数据可视化的工具，提供了数十种图表类型，并支持导出url供用户直接使用。另外Kibana还提供了在线查询，性能分析，数据时序分析等能力。不过Kibana并没有提供多租户能力，因此需要自行实现。
++ 谈到租户隔离，我觉得就是三个方面:功能、性能和权限。本文首先从这三个方面分析下kibana的现状和难点，随后介绍下业界的常用方案和ZSearch 2.0里的多租户方案。
+
+##现状分析
+### 功能
++ 功能上的租户隔离是指功能完整并互不可见，功能隔离是多租户的基础。
++ 用过kibana的同学都知道，kibana在配置中有个`kibana.index`，这是kibana的真实索引，用户使用kibana的所有数据都会存在这个索引中。默认为`.kibana`
+
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/FzQtgEmmnrhTLHLHxrBg.png)
++ 由上图可知，这个索引里存储着
+
+|序号|type|作用|
+|:--:|:--|:--|
+|1|dashboard|用户配的大盘|
+|2|visualization | 可视化组件|
+|3|search | 用户存储的搜索例子，也就|是discover里保存的的搜索请求|
+|5|url | dashboard生成的短链接对应|的真实url|
+|6|server | 暂时不知道有什么用。。。|
+|7|config | 这边存着在不同es版本中对应的d|efault index|
+|8|timelion-sheet | 存着timelion的数据|
+|9|index-pattern | 也就是用户配置的index，包括设置的script_field|
+
++ 除此之外，kibana还有些数据，比如dev tool的history，设置的刷新频率等等，这些是存在浏览器的localStorage中的。可见，我们要做到功能隔离，实际上就是`kibana.index`要做到隔离。
++ 而`.kibana`隔离的主要难点在于`.kibana`的使用非常分散，并且基本都是用multi形式访问，如mget，msearch，很难统一替换。
++ 并且kibana内部有两种类型的请求，`callWithInternalUser`和`callWithRequest`
+  + `callWithInternalUser`用的是配置里的auth信息
+  + `callWithRequest`用的是用户请求的auth信息。
++ 而`.kibana`索引的自检用的是`callWithInternalUser`,也就是访问ES的自建请求是没有用户信息的，用户的`.kibana`需要自己生成。需要注意的是`config`也是由自检写入的，自己生成index后需要手动写入config这一条数据，不然没法保存默认索引。
+
+
+### 性能
++ 资源隔离可以说是租户隔离的重中之重。没有资源隔离的多租户方案反而会让用户感到非常困扰。
++ Kibana分为两个部分
+  + 一个是angularJS的前端，也就是大家看到的kibana页面
+  + 另一个是hapiJS的server
++ kibana的资源隔离就是server上的资源隔离，用户不被他人影响。不过由于Kibana的Server基本就是转发请求到ES，自己并没有复杂逻辑。
++ 所以性能上的租户隔离，主要就是靠ES的隔离。而ES的资源隔离并不好做，具体就不在本文叙述了，后面会另外写专门文章介绍。
+
+### 权限
++ 权限控制是多租户的基本保障，没有权限控制那么就完全不具备上线能力。
++ Kibana并没有提供权限控制的能力，不过其HapiJS框架拥有auth能力，通过简单的服务注册，即可增加前端到Server的权限控制。
++ 但是由于Kibana自身设计上并没有太考虑权限，所以有很多漏洞，这些就是权限控制里的主要难点。如:
+  + 访问ES的请求是由前端发送msearch请求到server，其中index都是直接写在前端请求中的，如果被伪造，则可能发生水平权限漏洞。
+  + 其Request Auth可能被绕过，直接调用`callWithInternalUser`，则可能造成垂直权限漏洞。
+  + 其Dev tools请求拿到所有的index和mappings信息，大量的请求都是multi模式，这给ES的`URL-based access control`带来了很多问题，如果被恶意攻击者发现，则可能绕过`allow_explicit_index`限制，发生访问控制攻击。
+  + 用户使用DashBoard导出url嵌入到自己页面时带来的免密登录问题和潜在的安全问题。
+
+## 常见方案及Zsearch实现
+### .kibana替换
++ 如前文所述，功能上做到租户隔离也就是将.kibana索引替换为各个租户的索引。
++ 可以想到的方案有两种:
+  1. 将.kibana改为.kibana_username
+  2. 给.kibana增加username字段，修改所有请求带上username Filter
++ 业界一般都选用第一种，因为第二种改动太过复杂，每个请求的filter均不相同。
++ 而第一种方案常见的有死种实现:
+  1. 给不同用户部署不同kibana集群，配置文件里写死用不同username
+  2. 在kibana源码基本进行修改，增加username变量
+  3. 在kibana和ES中增加中间层，在中间层修改，如`kibana-own-home`
+  4. 增加ES插件，在ES request解析时进行index名替换,如`search-guard`。
++ 在中间层进行替换主要要注意的就是multi的方法都要进行body的替换
+
+### 权限控制
++ 权限控制常见的就是`X-PACK`和`search-guard`,kibana端都是用hapiJS的auth插件，而主要权限控制都是在ES插件中控制。
++ Search-Guard由于是收费版本，因此没有仔细研究。
++ X-Pack的权限控制目前不能做到租户隔离。只是控制不同用户登录同一个kibana实例，并不能不同用户登录不同kibana实例。
+
+
+## 参考资料
+1. [kibana 5.3源码](https://github.com/elastic/kibana/tree/5.3/src/server)
+2. [hapiJS的auth认证](https://hapijs.com/tutorials/auth)
+3. [kibana-own-home主页](https://github.com/wtakase/kibana-own-home)
+4. [Search guard主页](https://github.com/floragunncom/search-guard)
+
+## 版权声明
++ 自由转载-非商用-非衍生-保持署名（创意共享3.0许可证）
++ 本文首发于: http://czjxy881.coding.me/
+
+{% include toc %}
