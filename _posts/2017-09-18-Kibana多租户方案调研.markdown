@@ -4,7 +4,7 @@ title: "Kibana多租户方案"
 date: 2017-09-18 19:10:08 +0800
 comments: true
 categories: ElasticSearch
-tags: es 源码剖析
+tags: kibana
 ---
 ## 概览
 + Kibana是一个Elastic公司提供的，用于ElasticSearch数据可视化的工具，提供了数十种图表类型，并支持导出url供用户直接使用。另外Kibana还提供了在线查询，性能分析，数据时序分析等能力。不过Kibana并没有提供多租户能力，因此需要自行实现。
