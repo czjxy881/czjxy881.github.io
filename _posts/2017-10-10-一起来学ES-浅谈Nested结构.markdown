@@ -1,0 +1,175 @@
+---
+layout: single
+title: "一起来学ES —— 浅谈Nested结构"
+date: 2017-10-10 17:43:08 +0800
+comments: true
+categories: ElasticSearch
+tags: es 源码剖析 一起来学ES
+---
+## Nested是什么? 
++ 直观的说，Nested实际上就是Object的**数组**。如下，这个user就是个nested结构
+<!--more-->
+```json
+{
+  "user" : [ 
+    {
+      "first" : "John",
+      "last" :  "Smith"
+    },
+    {
+      "first" : "Alice",
+      "last" :  "White"
+    }
+  ]
+}
+```
+
+### Nested 和 Object 是什么关系？
++ ES原生支持Object类型，也就是任意字段都可以是个对象，而ES又是所有字段都是多值，也就是都可以是list。那么在ES中Nested和Object List又是什么关系呢？
++ 这就要从Object说起了。Object虽然是个对象，但是实际存储时是在当前文档里打平存储的。如上那个例子，如果只有一个user，那么在真实索引中实际上是下面这样的
+
+```json
+{
+  "user.first" : "John",
+  "user.last" : "Smith"
+}
+```
++ 而如果是个list，那么就成了
+
+```json
+{
+  "user.first" : ["John","Alice"],
+  "user.last" : ["Smith","White"]
+}
+```
++ 因为建索引时打平，因此检索时ES就无法知道到底是`John Smith`还是`John White`了。因此引入了Nested结构。
++ Nested将list里的每个doc单独变成子文档进行存储，因此在查询时就可以知道具体的结构信息了。
+
+## Nested 查询要注意什么？
++ Nested因为是单独的子文档存储，因此在使用时，直接用 `a.b.c` 是无法访问的，需要将其套在nested查询里。除此之外，和其他的查询并无差异。
+
+```json
+{
+  "query": {
+    "nested": {
+      "path": "user",
+      "query": {
+        "match": {"user.first" : "John"}
+      },
+      "inner_hits": {}
+    }
+  }
+}
+```
++ 如上所示，用一个`nested`套住真实query即可。默认的hit是返回父文档，也就是大的doc。如果加上`inner_hits`会在父文档的source中多一个`inner_hits`的字段，返回真实命中的object,其中有个offset表明list数组下标。
++ 需要注意的是，由于单独存储很耗资源，因此默认一个index最多只有50个nested字段。此外，虽然nested是单独存储的，但是其字段数也算入index总字段数，默认最多1000个。
+
+## Nested Aggregation是什么？
++ 对于Nested结构，有一点需要谨记的，就是他是个List结构。Nested Agg就是对这个list做agg操作，agg写法和普通的一样，只需要在外面套上nested即可。
++ 如官方文档的例子，就是一个商品有许多卖家，对这些卖家的报价求最小值。
+
+## 能否用Nested做动态kv?
++ Nested除了存储固定的Object List,还有一种常用的场景就是用来存储动态的KV。虽然ES天然支持dynamic mapping,但是其key都是固化在每一个doc中的，如果存储用户自定义报表数据。每个用户的key差异很大，放在同一张表会出现大量空值。这是很浪费系统资源的行为，并且随着Key的不断增多，最终会超出index的最大key数量。
++ 因此用nested结构来处理这种动态kv就比较合适。 nested的本质就是将 `{"tags":{"k1":"v1","k2":"v2"}}=>{"tags":[{"key":"key1","value":"v1"},{"key":"key2","value":"v2"}]}`
++ 这样一来就可以轻松处理动态kv。并且查询依旧简单，例如`k1:v1 AND k2:v2`变为
+
+```json
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "nested": {
+            "path": "tags",
+            "query": {
+              "query_string": {
+                "query": "tags.key:k1 AND tags.value:v1"
+              }
+            }
+          }
+        },
+        {
+          "nested": {
+            "path": "tags",
+            "query": {
+              "query_string": {
+                "query": "tags.key:k2 AND tags.value:v2"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### 动态kv如何做agg呢？
++ 普通查询的确很简单，但是agg就并不简单了。原来的模式可以直接用真实字段`tags.k1`做agg，但是在nested里k1已经变成了一个字段的值，因此没法直接做agg了。
++ 这时就需要引入script大法了。其实agg的本质就是从每个doc的正排里取一个值，用这个值做聚合。因此我们只需要用script遍历list，找到对应的key然后返回其value即可。
++ 简单写了个如下所示，如果有更好的方法欢迎留言。
++ 注意！！！ 由于nested单独存储，因此doc里并没有nested数据，需要用params从source中拿。性能很差，仅可用于少量数据场景！
+
+```json
+{ ...
+  "aggs": {
+    "test_agg": {
+      "terms": {
+        "script": {
+          "inline": "for(int i=0;i<params['_source']['tags'].length;i++){if(params['_source']['tags'][i]['key']=='k1'){return params['_source']['tags'][i]['value']}}",
+          "lang": "painless"
+        },
+        "size": 5
+      }
+    }
+  }
+}
+```
+
++ 在使用中我们还可以把script存在来，来加速运算，减少缓存。(注意:5.6以后将code改为了source字段，具体写法参阅文档)
+
+```json
+POST _scripts/is_tag_key
+{
+  "script":{
+    "lang": "painless",
+    "code":"for(int i=0;i<params['_source']['tags'].length;i++){if(params['_source']['tags'][i]['key']==params.key){return params['_source']['tags'][i]['value']}}"
+  }
+}
+```
+
++ 这样用起来就简单多了
+
+```json
+{ ...
+  "aggs": {
+    "test_agg": {
+      "terms": {
+        "script": {
+          "stored": "is_tag_key",
+          "params": {
+            "key": "k1"
+          }
+        },
+        "size": 5
+      }
+    }
+  }
+}
+```
+
+### 怎么在kibana里做agg呢？
++ kibana其实和上面的一样，也是用script.不过只支持inline的，在script field配置。不过注意一定不能太多，因为每一个inline script都是一个单独的script都需要消耗存储资源。
+
+## 参考资料
++ [nested datatype](https://www.elastic.co/guide/en/elasticsearch/reference/5.3/nested.html)
++ [nested query](https://www.elastic.co/guide/en/elasticsearch/reference/5.3/query-dsl-nested-query.html)
++ [nested agg](https://www.elastic.co/guide/en/elasticsearch/reference/5.3/search-aggregations-bucket-nested-aggregation.html)
++ [How to use scripts](https://www.elastic.co/guide/en/elasticsearch/reference/5.3/modules-scripting-using.html)
++ [painless DEBUG](https://www.elastic.co/guide/en/elasticsearch/reference/5.3/modules-scripting-painless-debugging.html)
+
+## 版权声明
++ 自由转载-非商用-非衍生-保持署名（创意共享3.0许可证）
++ 本文首发于: http://czjxy881.coding.me/
+
+{% include toc %}
