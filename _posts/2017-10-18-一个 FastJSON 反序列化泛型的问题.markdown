@@ -1,0 +1,62 @@
+---
+layout: single
+title: "一个 FastJSON 反序列化泛型的问题"
+date: 2017-10-18 23:43:08 +0800
+comments: true
+categories: 踩坑经验
+tags: fastjson
+---
+### 问题描述
++ 今天下午遇到一个反序列化泛型一直报错`com.alibaba.fastjson.JSONObject cannot be cast to xxx`的问题.
+<!-- more -->
++ 代码片段如下
+
+```java
+public class FastJSONTest {
+    public static void main(String[] args) {
+        A test=new A().setResult(ImmutableList.of(new B()));
+        String jsonString=JSON.toJSONString(test);
+        A newTest=JSON.parseObject(jsonString,A.class);
+        System.out.println(newTest.getResult().get(0).getClass());
+    }
+    public static class A{
+        List<B> result;
+        public List<B> getResult() {
+            return result;
+        }
+        public A setResult(List result) {
+            this.result = result;
+            return this;
+        }
+    }
+    public static class B{}
+}
+```
++ 看似没有问题，但其实就是因为`setResult(List result)`没有将B传入，导致后面在反序列化器中拿不到具体参数，导致按照默认的JSONObject反序列化，然后在使用就会发送强制转换失败的问题。
+
+### 解决方案
++ 将`setResult(List result)`改为`setResult(List<B> result)`即可
+
+### 原因分析
++ 原因主要在fastJSON的`FieldInfo`的168行
+![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/etfEekPTGPrcaFisPprb.png)
++ 可以看出其是先从method拿类型，所以如果在set参数中没带就会出现具体类型丢失的问题。
++ 而如果没有set函数的话，则会从public的field里取type。
+
+### 其他
+#### ASM DEBUG方法
++ ![IMAGE](https://gw.alipayobjects.com/zos/rmsportal/xcrXNqFDQhKEOdIRseQg.png) `ASMClassLoader`174行会将ASM加载到内存，可以在这里将byte数组输出到文件，变为.class文件，即可查看
+
+#### 自定义序列化器
++ 如果是自定义序列化器，可以拿到type后用`Type actualType = ((ParameterizedTypeImpl) type).getActualTypeArguments()[0];`拿到真实泛型类型。
++ 然后再利用parse进行反序列化。
+
+### 参考资料
++ https://github.com/alibaba/fastjson/wiki/ObjectDeserializer_cn
++ https://github.com/alibaba/fastjson/issues/15
+
+### 版权声明
++ 自由转载-非商用-非衍生-保持署名（创意共享3.0许可证）
++ 本文首发于: http://czjxy881.coding.me/
+
+{% include toc %}
